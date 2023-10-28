@@ -13,6 +13,7 @@ def index():
 
 @socket.on('message')
 def handle_message(data):
+    print(data['message'])
     username = 'User1'  # You can replace this with the actual username
     message = data['message']
     messages.append({'username': username, 'message': message})
@@ -26,12 +27,5 @@ def handle_connect():
 def handle_disconnect():
     print('User disconnected')
 
-
-"""
-@app.route("/")
-def login():
-   return render_template('login.html')
-"""
-
 if __name__ == "__main__":
-    socket.run(app, debug=True)
+    socket.run(app, debug=True, allow_unsafe_werkzeug=True)

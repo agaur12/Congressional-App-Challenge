@@ -1,109 +1,17 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Simple Chat App</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"> <!-- Include Font Awesome CSS -->
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            background-color: #36393f; /* Discord's background color */
-        }
-        .chat-box {
-            display: flex;
-            flex-direction: column;
-            height: 100vh; /* Make the chat box full-screen height */
-            background-color: #2f3136; /* Discord's chat background color */
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
-        }
-        .chat-tabs {
-            display: flex;
-            background-color: #40444b; /* Discord's input background color */
-            padding: 10px;
-        }
-        .chat-tab {
-            padding: 8px 12px;
-            cursor: pointer;
-            margin-right: 10px;
-            background-color: #7289da; /* Discord's send button color */
-            color: #fff;
-            border-radius: 5px;
-        }
-        .chat-tab.active {
-            background-color: #677bc4; /* Discord's send button hover color */
-        }
-        .chat-messages {
-            flex-grow: 1; /* Allow the message area to grow and take up available space */
-            overflow-y: scroll;
-            padding: 10px;
-            background-color: #202225; /* Discord's message background color */
-            border-radius: 8px;
-            border: 1px solid #282b30; /* Discord's message border color */
-        }
-        .message {
-            margin-bottom: 10px;
-        }
-        .message strong {
-            color: #7289da; /* Discord's username color */
-        }
-        .message p {
-            margin: 0;
-        }
-        .message-input-container {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            background-color: #40444b; /* Discord's input background color */
-            border-top: 1px solid #282b30; /* Discord's message border color */
-        }
-        .message-input {
-            flex-grow: 1; /* Allow the input field to grow and take up available space */
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            background-color: transparent; /* Transparent background for the input field */
-            color: #dcddde; /* Discord's input text color */
-            overflow-wrap: break-word; /* Wrap text when it overflows */
-        }
-        .message-input:focus {
-            outline: none;
-        }
-        .send-button {
-            background-color: #7289da; /* Discord's send button color */
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-left: 10px; /* Add margin to separate the input field and button */
-            padding: 8px;
-        }
-        .send-button:hover {
-            background-color: #677bc4; /* Discord's send button hover color */
-        }
-        .sent-message {
-            color: #fff; /* Text color for sent messages */
-        }
-        .received-message {
-            color: #fff; /* Text color for received messages */
-            background-color: #3b3d42; /* Complementary background color */
-        }
-    </style>
+    <title>Chat App Interface</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
     <div class="chat-box">
-        <div class="chat-tabs">
-            <div class="chat-tab active" onclick="switchChat(1)">Chat 1</div>
-            <div class="chat-tab" onclick="switchChat(2)">Chat 2</div>
-            <!-- Add more chat tabs as needed -->
-        </div>
         <div class="chat-messages" id="chat-messages">
             <!-- Display chat messages here -->
         </div>
         <div class="message-input-container">
-            <input type="text" class="message-input" id="message-input" placeholder="Type your message..." onkeydown="sendMessageOnEnter(event)">
-            <button class="send-button" onclick="sendMessage()">
-                <i class="fas fa-paper-plane"></i> <!-- Send button icon -->
-            </button>
+            <input type="text" class="message-input" id="message-input" placeholder="Type your message..." onkeydown="sendMessage(event)">
+            <button class="send-button"><i class="fas fa-paper-plane" onclick="sendMessage()"></i> <!-- Send button icon --></button>
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.1/socket.io.js"></script>
@@ -114,45 +22,15 @@
             console.log('Connected');
         });
 
-        socket.on('message', function(data) {
-            displayReceivedMessage(data.username, data.message);
-        });
-
-        var currentChat = 1; // Default chat tab
-
-        // Function to switch between chat tabs
-        function switchChat(tabNumber) {
-            // Deactivate the currently active tab
-            document.querySelector('.chat-tab.active').classList.remove('active');
-
-            // Activate the selected tab
-            var selectedTab = document.querySelector('.chat-tab:nth-child(' + tabNumber + ')');
-            selectedTab.classList.add('active');
-
-            // Update the current chat
-            currentChat = tabNumber;
-
-            // You can implement logic to load chat messages for the selected chat here
-            // For simplicity, this example does not load chat history for different tabs
-        }
-
         // Function to send a message
-        function sendMessage() {
-            var messageInput = document.getElementById('message-input');
-            var message = messageInput.value.trim();
-            if (message !== '') {
-                // Send the message to the backend
-                socket.emit('message', { message: message });
-                messageInput.value = '';
-                displayReceivedMessage('You', message);
-            }
-        }
-        
-        // Function to send a message when Enter key is pressed
-        function sendMessageOnEnter(event) {
-            if (event.keyCode === 13) { // 13 is the keycode for Enter
-                event.preventDefault(); // Prevent Enter from creating a new line
-                sendMessage(); // Call the sendMessage function
+        function sendMessage(event) {
+            if (!event || event.type === 'click' || event.key === 'Enter') {
+                var messageInput = document.getElementById('message-input');
+                var message = messageInput.value.trim();
+                if (message !== '') {
+                    socket.emit('message', { message: message });
+                    messageInput.value = '';
+                }
             }
         }
 
@@ -167,29 +45,14 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        // Simulate receiving a message (for testing)
-        setTimeout(function () {
-            displayMessage('User2', 'Hello, how are you?', 'received-message');
-        }, 1000);
-
         // Function to retrieve messages from the backend
         function retrieveMessages() {
-            fetch('/get_messages', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+            socket.on('message', function (data) {
+                displayMessage(data.username, data.message);
             })
-            .then(response => response.json())
-            .then(data => {
-                // Display received messages
-                data.forEach(message => {
-                    displayMessage(message.username, message.message, 'received-message');
+                .catch(error => {
+                    console.error('Error:', error);
                 });
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
         }
 
         // Call retrieveMessages when the page loads
