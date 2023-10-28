@@ -1,0 +1,5 @@
+1. Login through dictionary or sql
+2. Send username to backend and back to frontend
+3. Make sure that if self sends message it says "You" instead of their username
+4. Test with two devices
+5. Add translation on send
