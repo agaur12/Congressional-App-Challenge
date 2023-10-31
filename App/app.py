@@ -5,10 +5,11 @@ app = Flask(__name__)
 socket = SocketIO(app)
 
 # Store usernames in memory (replace with a database)
-logins = {'1': '0'}
+logins = {}
 
 # Store chat messages in memory (replace with a database)
 messages = []
+session = {}
 
 @app.route("/")
 def index():
@@ -30,24 +31,15 @@ def handle_login(data):
         error = 'Invalid password'
     else:
         login_status = True
+        session['username'] = username
     emit('login', {'loginStatus': login_status, 'error': error})
-
-
-@socket.on('join')
-def join_room(data):
-    #global username
-    #username = data['username']
-    print('join')
-    return redirect('/chat')
 
 @socket.on('message')
 def handle_message(data):
-    print(data['message'])
+    username = session['username']
     message = data['message']
-    username = 'username'
     messages.append({'username': username, 'message': message})
     emit('message', {'username': username, 'message': message})
-    print('sent')
 
 
 @socket.on('connect')
