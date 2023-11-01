@@ -1,63 +1,65 @@
 from flask import Flask, render_template, redirect, url_for
 from flask_socketio import SocketIO, emit, send
+from data import *
+from translate import *
 
 app = Flask(__name__)
 socket = SocketIO(app)
 
-# Store usernames in memory (replace with a database)
-logins = {}
-
 # Store chat messages in memory (replace with a database)
 messages = []
-session = {}
+session = {'username': 'admin', 'language': 'en'}
 
-@app.route("/login")
+aws_access_key_id = os.environ.get('AWS_ACCESS_KEY_ID')
+aws_secret_access_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
+
+@app.route("/")
 def login():
     return render_template('login.html')
+
+
 @app.route("/chat")
 def chat():
     return render_template('chat.html')
+
+
 @app.route("/register")
 def register():
     return render_template('register.html')
+
 
 @socket.on('register')
 def handle_register(data):
     username = data['username']
     password = data['password']
-    success = False
-
-    if username in logins:
-        error = "Username Already Exists"
-    else:
-        logins[username] = password
-        success = True
-
-    emit('registration_response', {'success': success, 'error': error})
-
+    success, error = check_username(username, aws_access_key_id, aws_secret_access_key)
+    if success:
+        store_login_info(username, password, aws_access_key_id, aws_secret_access_key)
+    emit('register', {'success': success, 'error': error})
 
 
 @socket.on('login')
 def handle_login(data):
     username = data['username']
     password = data['password']
-    success = False
-    error = None
-    if username not in logins:
-        error = 'Invalid username'
-    elif logins[username] != password:
-        error = 'Invalid password'
-    else:
-        success = True
+    success, error = check_login_info(username, password, aws_access_key_id, aws_secret_access_key)
+    if success:
         session['username'] = username
     emit('login', {'success': success, 'error': error})
+
+
+@socket.on('language')
+def select_language(data):
+    session['language'] = str(data)
 
 @socket.on('message')
 def handle_message(data):
     username = session['username']
     message = data['message']
+    language = session['language']
     messages.append({'username': username, 'message': message})
-    emit('message', {'username': username, 'message': message})
+    translated_message = translate(language, message)
+    emit('message', {'username': username, 'message': message, 'translated_message': translated_message})
 
 
 @socket.on('connect')
