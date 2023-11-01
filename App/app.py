@@ -11,28 +11,46 @@ logins = {}
 messages = []
 session = {}
 
-@app.route("/")
-def index():
+@app.route("/login")
+def login():
     return render_template('login.html')
 @app.route("/chat")
 def chat():
     return render_template('chat.html')
+@app.route("/register")
+def register():
+    return render_template('register.html')
+
+@socket.on('register')
+def handle_register(data):
+    username = data['username']
+    password = data['password']
+    success = False
+
+    if username in logins:
+        error = "Username Already Exists"
+    else:
+        logins[username] = password
+        success = True
+
+    emit('registration_response', {'success': success, 'error': error})
+
 
 
 @socket.on('login')
 def handle_login(data):
     username = data['username']
     password = data['password']
-    login_status = False
+    success = False
     error = None
     if username not in logins:
         error = 'Invalid username'
     elif logins[username] != password:
         error = 'Invalid password'
     else:
-        login_status = True
+        success = True
         session['username'] = username
-    emit('login', {'loginStatus': login_status, 'error': error})
+    emit('login', {'success': success, 'error': error})
 
 @socket.on('message')
 def handle_message(data):
