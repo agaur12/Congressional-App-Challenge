@@ -1,5 +1,0 @@
-1. Set up registration
-2. Set up database to store login data and messages
-3. Make sure that if self sends message it says "You" instead of their username
-4. Test with two devices
-5. Add translation on send

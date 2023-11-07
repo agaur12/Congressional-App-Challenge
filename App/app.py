@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, url_for
 from flask_socketio import SocketIO, emit, send
 from data import *
-from translate import *
+from App.translate import *
 
 app = Flask(__name__)
 socket = SocketIO(app)
